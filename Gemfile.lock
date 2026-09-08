@@ -122,6 +122,8 @@ GEM
     minitest (5.26.2)
     msgpack (1.8.0)
     mutex_m (0.3.0)
+    neighbor (0.5.2)
+      activerecord (>= 7)
     net-imap (0.5.12)
       date
       net-protocol
@@ -155,7 +157,6 @@ GEM
     pg (1.6.2-x86_64-darwin)
     pg (1.6.2-x86_64-linux)
     pg (1.6.2-x86_64-linux-musl)
-    pgvector (0.3.3)
     pp (0.6.3)
       prettyprint
     prettyprint (0.2.0)
@@ -242,8 +243,8 @@ PLATFORMS
 DEPENDENCIES
   bootsnap
   debug
+  neighbor (~> 0.5.2)
   pg (~> 1.1)
-  pgvector (~> 0.3)
   puma (>= 5.0)
   rack-cors
   rails (~> 7.1.6)

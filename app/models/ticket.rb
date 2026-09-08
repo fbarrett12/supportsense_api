@@ -1,4 +1,6 @@
 class Ticket < ApplicationRecord
+  has_neighbors :embedding 
+  
   belongs_to :organization
   belongs_to :known_issue, optional: true
 
