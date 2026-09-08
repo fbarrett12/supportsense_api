@@ -1,35 +1,31 @@
-org = Organization.find_or_create_by!(slug: "demo-org") do |o|
-  o.name = "Demo Organization"
+org = Organization.find_or_create_by!(slug: "demo-org") { |record| record.name = "SupportSense Demo" }
+User.find_or_create_by!(organization: org, email: "founder@demo.com") do |user|
+  user.encrypted_password = "demo-only-not-for-production"
+  user.role = "owner"
+  user.name = "Fredrick Barrett"
 end
 
-user = User.find_or_create_by!(organization: org, email: "founder@demo.com") do |u|
-  u.encrypted_password = "TODO-use-devise-or-bcrypt"
-  u.role = "owner"
+issues = [
+  { title: "PLM upload fails when UPC column is missing", description: "Catalog imports fail when the PLM template omits the UPC column.", root_cause: "The import validator expects a UPC column and throws a null-reference error when it is absent.", workaround: "Add a UPC column to the template, even when values are blank, then retry the upload.", permanent_fix: "Make UPC optional and return a field-level validation message.", severity_level: "high", status: "monitoring", tags: %w[upload upc plm catalog] },
+  { title: "Invoice exports remain in processing", description: "Large invoice exports time out during peak processing windows.", root_cause: "Large export batches exceed the background worker timeout.", workaround: "Split the date range into weekly exports while Engineering drains the delayed queue.", permanent_fix: "Stream exports in resumable batches.", severity_level: "critical", status: "investigating", tags: %w[invoice export processing] },
+  { title: "SSO redirect loop after domain update", description: "Users return to sign-in after successful SSO authentication.", root_cause: "The identity provider redirects to a stale callback domain cached in tenant configuration.", workaround: "Re-save SSO configuration and begin a new private browsing session.", permanent_fix: "Invalidate callback configuration caches when domains change.", severity_level: "medium", status: "fix_scheduled", tags: %w[sso login redirect domain] }
+].map do |attributes|
+  issue = org.known_issues.find_or_initialize_by(title: attributes[:title])
+  issue.update!(attributes)
+  issue
 end
 
-issue = KnownIssue.find_or_create_by!(organization: org, title: "Home Depot PLM upload fails without UPC") do |ki|
-  ki.description = "Uploads fail when UPC column is missing in the PLM template."
-  ki.root_cause  = "Validator assumes UPC presence and throws a null reference error."
-  ki.workaround  = "Ensure all uploads include a UPC column, even if blank."
-  ki.permanent_fix = "Relax validator to handle missing UPC and provide better error messages."
-  ki.severity_level = "high"
-  ki.status = "monitoring"
+[
+  { external_id: "ZEN-4821", source_system: "zendesk", subject: "Home Depot catalog upload returns generic error", body: "Our merchandising team cannot upload today's PLM file. The file does not include UPC because these are pre-release items.", severity: "high", customer_identifier: "Home Depot", known_issue: issues[0], match_confidence: 96 },
+  { external_id: "ZEN-4818", source_system: "zendesk", subject: "Month-end invoices stuck processing", body: "The finance export has shown processing for 45 minutes and is blocking month-end close.", severity: "critical", customer_identifier: "Northstar Freight", known_issue: issues[1], match_confidence: 93 },
+  { external_id: "INT-1094", source_system: "intercom", subject: "Users sent back to login after SSO", body: "Since updating our company domain, everyone returns to sign in after authenticating.", severity: "medium", customer_identifier: "Atlas Supply", known_issue: issues[2], match_confidence: 89 },
+  { external_id: "ZEN-4807", source_system: "zendesk", subject: "Can we rename a saved report?", body: "Is there a way to rename a report without rebuilding it?", severity: "low", customer_identifier: "Marlow Retail" }
+].each do |attributes|
+  ticket = org.tickets.find_or_initialize_by(external_id: attributes[:external_id], source_system: attributes[:source_system])
+  ticket.assign_attributes(attributes.merge(status: "open", tags: []))
+  ticket.summary = nil
+  ticket.save!
+  Ai::Summarizer.call(ticket)
 end
 
-Ticket.find_or_create_by!(
-  organization: org,
-  external_id: "ZENDESK-1",
-  source_system: "zendesk"
-) do |t|
-  t.subject = "Upload failing for Home Depot PLM template"
-  t.body    = "Customer reports upload fails with generic error when sending PLM file without UPC."
-  t.summary = "Home Depot PLM upload fails when UPC column is missing."
-  t.status  = "open"
-  t.severity = "high"
-  t.customer_identifier = "home_depot"
-  t.known_issues_id = issue.id
-  t.tags = ["home_depot", "plm", "upload", "upc_missing"]
-  t.first_seen_at = Time.current
-  t.last_updated_at = Time.current
-end
-
+issues.each(&:update_occurrence_stats!)

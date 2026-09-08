@@ -7,7 +7,8 @@ module Api
         issues = current_organization.known_issues.order(occurrence_count: :desc)
         render json: issues.as_json(only: [
           :id, :title, :severity_level, :status,
-          :occurrence_count, :first_seen_at, :last_seen_at
+          :occurrence_count, :first_seen_at, :last_seen_at,
+          :description, :root_cause, :workaround, :permanent_fix, :tags
         ])
       end
 

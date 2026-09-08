@@ -14,7 +14,7 @@ class CreateTickets < ActiveRecord::Migration[7.1]
       t.string :severity
       t.string :customer_identifier
 
-      t.references :known_issues, null: true, foreign_key: true
+      t.references :known_issue, null: true, foreign_key: true
 
       t.jsonb :tags, default: []
 
@@ -22,6 +22,7 @@ class CreateTickets < ActiveRecord::Migration[7.1]
       t.datetime :last_updated_at
 
       t.column :embedding, 'vector(1536)'
+      t.integer :match_confidence
 
       t.timestamps
     end

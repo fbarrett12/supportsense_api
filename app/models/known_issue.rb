@@ -2,6 +2,8 @@ class KnownIssue < ApplicationRecord
   belongs_to :organization
   has_many :tickets
 
+  validates :title, :description, :severity_level, :status, presence: true
+
   scope :active, -> { where.not(status: "deprecated") }
 
   def update_occurrence_stats!
