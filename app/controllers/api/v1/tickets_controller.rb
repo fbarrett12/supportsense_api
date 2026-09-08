@@ -10,17 +10,17 @@ module Api
       end
 
       def show
-        render json: @ticket.as_json(include: {
-          known_issue: { only: [:id, :title, :severity_level, :status] }
-        })
+        render json: TicketSerializer.new(@ticket).as_json.merge(
+          known_issue: @ticket.known_issue&.as_json(only: [:id, :title, :severity_level, :status, :root_cause, :workaround])
+        )
       end
 
       def create
         ticket = current_organization.tickets.new(ticket_params)
 
         if ticket.save
-          TicketEnrichmentJob.perform_later(ticket.id)
-          render json: ticket, status: :created
+          TicketEnrichmentJob.perform_now(ticket.id)
+          render json: TicketSerializer.new(ticket.reload).as_json, status: :created
         else
           render json: { errors: ticket.errors.full_messages }, status: :unprocessable_entity
         end

@@ -8,5 +8,6 @@ class TicketEnrichmentJob < ApplicationJob
     Ai::Summarizer.call(ticket)
     Ai::Embedder.call(ticket)
     Tickets::MatchKnownIssue.call(ticket)
+    ticket.reload
   end
 end
