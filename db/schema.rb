@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_12_04_005244) do
+ActiveRecord::Schema[7.1].define(version: 2026_09_08_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "vector"
@@ -44,26 +44,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_04_005244) do
     t.index ["organization_id"], name: "index_jira_tasks_on_organization_id"
   end
 
-  create_table "known_issues", force: :cascade do |t|
-    t.bigint "organization_id", null: false
-    t.string "title"
-    t.text "description"
-    t.text "root_cause"
-    t.text "workaround"
-    t.text "permanent_fix"
-    t.string "severity_level"
-    t.string "status"
-    t.jsonb "tags", default: []
-    t.integer "occurrence_count", default: 0, null: false
-    t.datetime "first_seen_at"
-    t.datetime "last_seen_at"
-    t.vector "embedding", limit: 1536
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["organization_id", "title"], name: "index_known_issues_on_organization_id_and_title"
-    t.index ["organization_id"], name: "index_known_issues_on_organization_id"
-    t.index ["tags"], name: "index_known_issues_on_tags", using: :gin
-  end
+# Could not dump table "known_issues" because of following StandardError
+#   Unknown type 'vector(1536)' for column 'embedding'
 
   create_table "organizations", force: :cascade do |t|
     t.string "name", null: false
@@ -74,29 +56,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_12_04_005244) do
     t.index ["slug"], name: "index_organizations_on_slug", unique: true
   end
 
-  create_table "tickets", force: :cascade do |t|
-    t.bigint "organization_id", null: false
-    t.string "external_id"
-    t.string "source_system"
-    t.string "subject"
-    t.text "body"
-    t.text "summary"
-    t.string "status"
-    t.string "severity"
-    t.string "customer_identifier"
-    t.bigint "known_issue_id"
-    t.jsonb "tags", default: []
-    t.datetime "first_seen_at"
-    t.datetime "last_updated_at"
-    t.vector "embedding", limit: 1536
-    t.integer "match_confidence"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["known_issue_id"], name: "index_tickets_on_known_issue_id"
-    t.index ["organization_id", "external_id", "source_system"], name: "index_tickets_on_org_external_and_source", unique: true
-    t.index ["organization_id"], name: "index_tickets_on_organization_id"
-    t.index ["tags"], name: "index_tickets_on_tags", using: :gin
-  end
+# Could not dump table "tickets" because of following StandardError
+#   Unknown type 'vector(1536)' for column 'embedding'
 
   create_table "users", force: :cascade do |t|
     t.bigint "organization_id", null: false
